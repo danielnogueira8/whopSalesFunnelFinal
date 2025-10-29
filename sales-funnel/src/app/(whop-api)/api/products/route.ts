@@ -68,16 +68,28 @@ export async function GET(req: NextRequest) {
       console.error('[Products API] companies.listPlans failed:', e?.message || e)
     }
 
-    // 3) Try scoping with withCompany helper (some SDK setups require it)
+    // 3) Try scoping with withCompany and withUser (some SDK setups require both)
     try {
-      const scoped = whop.withCompany(companyId)
+      const scoped = whop.withCompany(companyId).withUser(env.NEXT_PUBLIC_WHOP_AGENT_USER_ID)
       const alt = await scoped.companies.listAccessPasses({ companyId }) as any
       const items = (alt?.data || alt?.accessPasses || (Array.isArray(alt) ? alt : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
       }
     } catch (e: any) {
-      console.error('[Products API] withCompany.companies.listAccessPasses failed:', e?.message || e)
+      console.error('[Products API] withCompany+withUser companies.listAccessPasses failed:', e?.message || e)
+    }
+
+    // 4) As a final attempt, try scoped plans
+    try {
+      const scoped = whop.withCompany(companyId).withUser(env.NEXT_PUBLIC_WHOP_AGENT_USER_ID)
+      const plansRes = await scoped.companies.listPlans({ companyId }) as any
+      const items = (plansRes?.data || plansRes?.plans || (Array.isArray(plansRes) ? plansRes : [])) as any[]
+      if (Array.isArray(items) && items.length >= 0) {
+        return formatProductsResponse(items)
+      }
+    } catch (e: any) {
+      console.error('[Products API] withCompany+withUser companies.listPlans failed:', e?.message || e)
     }
 
     // If everything fails, return empty list so UI shows "No products found"
