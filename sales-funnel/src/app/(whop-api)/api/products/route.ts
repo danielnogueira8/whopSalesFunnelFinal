@@ -12,9 +12,9 @@ export async function GET(req: NextRequest) {
     }
 
     // Preferred approach: Use Whop GraphQL SDK methods (works inside Whop iframe or with privileged App API key)
-    // 1) Try to list access passes for the experience directly
+    // 1) Try to list access passes for the experience directly (some SDKs require explicit pagination args)
     try {
-      const fromExperience = await whop.experiences.listAccessPassesForExperience({ experienceId }) as any
+      const fromExperience = await whop.experiences.listAccessPassesForExperience({ experienceId, limit: 100 }) as any
       const items = (fromExperience?.data || fromExperience?.accessPasses || (Array.isArray(fromExperience) ? fromExperience : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
@@ -26,8 +26,18 @@ export async function GET(req: NextRequest) {
     // 2) Fallback: get companyId from experience, then list company access passes or plans
     let companyId = ""
     try {
-      const experience = await whop.experiences.getExperience({ experienceId })
+      const experience = await whop.experiences.getExperience({ experienceId }) as any
       companyId = experience?.company?.id || ""
+      // Some responses include accessPasses directly on experience
+      const expPasses = (experience?.accessPasses || experience?.data?.accessPasses) as any[] | undefined
+      if (Array.isArray(expPasses) && expPasses.length > 0) {
+        return formatProductsResponse(expPasses)
+      }
+      // Some older fields may be named products
+      const expProducts = (experience?.products || experience?.data?.products) as any[] | undefined
+      if (Array.isArray(expProducts) && expProducts.length > 0) {
+        return formatProductsResponse(expProducts)
+      }
     } catch (e: any) {
       console.error('[Products API] getExperience failed:', e?.message || e)
     }
@@ -38,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     // 2a) Try company access passes
     try {
-      const fromCompany = await whop.companies.listAccessPasses({ companyId }) as any
+      const fromCompany = await whop.companies.listAccessPasses({ companyId, limit: 100 }) as any
       const items = (fromCompany?.data || fromCompany?.accessPasses || (Array.isArray(fromCompany) ? fromCompany : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
@@ -49,13 +59,25 @@ export async function GET(req: NextRequest) {
 
     // 2b) Last resort: list plans (if your UX treats plans as selectable products)
     try {
-      const plansRes = await whop.companies.listPlans({ companyId }) as any
+      const plansRes = await whop.companies.listPlans({ companyId, limit: 100 }) as any
       const items = (plansRes?.data || plansRes?.plans || (Array.isArray(plansRes) ? plansRes : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
       }
     } catch (e: any) {
       console.error('[Products API] companies.listPlans failed:', e?.message || e)
+    }
+
+    // 3) Try scoping with withCompany helper (some SDK setups require it)
+    try {
+      const scoped = whop.withCompany(companyId)
+      const alt = await scoped.companies.listAccessPasses({ companyId, limit: 100 }) as any
+      const items = (alt?.data || alt?.accessPasses || (Array.isArray(alt) ? alt : [])) as any[]
+      if (Array.isArray(items) && items.length >= 0) {
+        return formatProductsResponse(items)
+      }
+    } catch (e: any) {
+      console.error('[Products API] withCompany.companies.listAccessPasses failed:', e?.message || e)
     }
 
     // If everything fails, return empty list so UI shows "No products found"
