@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -38,7 +38,7 @@ const categories = [
   { id: "win_back", name: "Win-back", icon: MessageSquareMore },
 ];
 
-export default function NewSequencePage() {
+function NewSequenceContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -182,6 +182,23 @@ export default function NewSequencePage() {
       </Card>
       </div>
     </div>
+  );
+}
+
+export default function NewSequencePage() {
+  return (
+    <Suspense fallback={
+      <div className="@container/main flex flex-1 flex-col gap-2 px-4 lg:px-6">
+        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Create New Sequence</h2>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <NewSequenceContent />
+    </Suspense>
   );
 }
 
