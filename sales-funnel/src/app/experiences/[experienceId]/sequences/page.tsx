@@ -29,50 +29,50 @@ const categories = [
     name: "Welcome Sequence",
     description: "Onboard new members and introduce them to your community",
     icon: HandHeart,
-    color: "bg-blue-500",
-    buttonBg: "bg-blue-500/90",
-    hoverBg: "hover:bg-blue-500",
-    border: "border-blue-500",
+    color: "bg-blue-100 text-blue-700",
+    buttonBg: "bg-blue-100",
+    hoverBg: "hover:bg-blue-200",
+    border: "border-blue-200",
   },
   {
     id: "cart_abandonment",
     name: "Cart Abandonment",
     description: "Re-engage users who added items to cart but didn't purchase",
     icon: ShoppingCart,
-    color: "bg-red-500",
-    buttonBg: "bg-red-500/90",
-    hoverBg: "hover:bg-red-500",
-    border: "border-red-500",
+    color: "bg-red-100 text-red-700",
+    buttonBg: "bg-red-100",
+    hoverBg: "hover:bg-red-200",
+    border: "border-red-200",
   },
   {
     id: "product_purchase",
     name: "Product Purchase",
     description: "Follow up with customers after they purchase",
     icon: Tag,
-    color: "bg-green-500",
-    buttonBg: "bg-green-500/90",
-    hoverBg: "hover:bg-green-500",
-    border: "border-green-500",
+    color: "bg-green-100 text-green-700",
+    buttonBg: "bg-green-100",
+    hoverBg: "hover:bg-green-200",
+    border: "border-green-200",
   },
   {
     id: "upsell",
     name: "Upsell",
     description: "Recommend additional products to existing customers",
     icon: ArrowUpCircle,
-    color: "bg-purple-500",
-    buttonBg: "bg-purple-500/90",
-    hoverBg: "hover:bg-purple-500",
-    border: "border-purple-500",
+    color: "bg-purple-100 text-purple-700",
+    buttonBg: "bg-purple-100",
+    hoverBg: "hover:bg-purple-200",
+    border: "border-purple-200",
   },
   {
     id: "win_back",
     name: "Win-back",
     description: "Reactivate inactive members or previous customers",
     icon: MessageSquareMore,
-    color: "bg-orange-500",
-    buttonBg: "bg-orange-500/90",
-    hoverBg: "hover:bg-orange-500",
-    border: "border-orange-500",
+    color: "bg-orange-100 text-orange-700",
+    buttonBg: "bg-orange-100",
+    hoverBg: "hover:bg-orange-200",
+    border: "border-orange-200",
   },
 ];
 
@@ -134,7 +134,7 @@ export default function SequencesPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg ${category.color} text-white`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg ${category.color} ${category.border} border`}
                   >
                     <CategoryIcon className="h-6 w-6" />
                   </div>
@@ -150,7 +150,7 @@ export default function SequencesPage() {
                     </div>
                   </div>
                 </div>
-                <Button size="sm" variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border text-white ${category.hoverBg}`} onClick={() => router.push(`/experiences/${experience.id}/sequences/new?category=${category.id}` as any)}>
+                <Button size="sm" variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border ${category.hoverBg} text-inherit`} onClick={() => router.push(`/experiences/${experience.id}/sequences/new?category=${category.id}` as any)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create New
                 </Button>
@@ -163,7 +163,7 @@ export default function SequencesPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     No sequences in this category yet
                   </p>
-                  <Button variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border text-white ${category.hoverBg}`} onClick={() => router.push(`/experiences/${experience.id}/sequences/new?category=${category.id}` as any)}>
+                  <Button variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border ${category.hoverBg} text-inherit`} onClick={() => router.push(`/experiences/${experience.id}/sequences/new?category=${category.id}` as any)}>
                     Create your first sequence
                   </Button>
                 </div>
@@ -179,7 +179,7 @@ export default function SequencesPage() {
                       >
                         <div className="flex items-center gap-3">
                           <div
-                            className={`flex h-8 w-8 items-center justify-center rounded ${color} text-white`}
+                            className={`flex h-8 w-8 items-center justify-center rounded ${color} ${category.border} border`}
                           >
                             <Icon className="h-4 w-4" />
                           </div>
