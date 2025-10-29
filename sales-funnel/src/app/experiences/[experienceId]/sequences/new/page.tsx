@@ -234,6 +234,9 @@ function NewSequenceContent() {
               <p className="text-xs text-muted-foreground">
                 Filter this sequence to a specific product. Leave empty to apply to all products.
               </p>
+              <p className="text-xs text-muted-foreground">
+                If you have a product that's not listed here, please go to the "Products" section inside your Whop and include the app "Sales Funnel" with this product.
+              </p>
             </div>
           )}
           <div className="flex justify-end gap-2 pt-4">
