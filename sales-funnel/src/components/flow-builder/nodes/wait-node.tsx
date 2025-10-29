@@ -9,7 +9,9 @@ export type WaitNodeData = {
   unit: "minutes" | "hours" | "days";
 };
 
-export default function WaitNode({ data, selected }: NodeProps<WaitNodeData>) {
+export default function WaitNode(props: NodeProps) {
+  const data = props.data as WaitNodeData
+  const selected = props.selected
   return (
     <Card
       className={`w-48 ${selected ? "ring-2 ring-primary" : ""}`}

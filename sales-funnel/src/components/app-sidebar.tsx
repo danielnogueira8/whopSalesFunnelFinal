@@ -93,7 +93,7 @@ function AppSidebarContent() {
     },
   ]
 
-  return <NavMain items={navItems} showLabel={false} />
+  return <NavMain items={navItems} />
 }
 
 function AppSidebarFooter() {

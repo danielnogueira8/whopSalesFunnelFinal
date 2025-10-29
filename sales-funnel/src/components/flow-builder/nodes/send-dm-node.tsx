@@ -9,7 +9,9 @@ export type SendDMNodeData = {
   variables?: string[];
 };
 
-export default function SendDMNode({ data, selected }: NodeProps<SendDMNodeData>) {
+export default function SendDMNode(props: NodeProps) {
+  const data = props.data as SendDMNodeData
+  const selected = props.selected
   return (
     <Card
       className={`w-64 ${selected ? "ring-2 ring-primary" : ""}`}

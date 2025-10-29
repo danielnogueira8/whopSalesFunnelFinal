@@ -10,10 +10,9 @@ export type OfferDiscountNodeData = {
   type?: "percentage" | "fixed";
 };
 
-export default function OfferDiscountNode({
-  data,
-  selected,
-}: NodeProps<OfferDiscountNodeData>) {
+export default function OfferDiscountNode(props: NodeProps) {
+  const data = props.data as OfferDiscountNodeData
+  const selected = props.selected
   return (
     <Card
       className={`w-56 ${selected ? "ring-2 ring-primary" : ""}`}

@@ -369,7 +369,7 @@ function SidebarSeparator({
   )
 }
 
-function SidebarContent({ className, children, ...props }: React.ComponentProps<"div">) {
+function SidebarContent({ className, children }: React.ComponentProps<"div">) {
   return (
     <ScrollArea
       data-slot="sidebar-content"
@@ -378,7 +378,6 @@ function SidebarContent({ className, children, ...props }: React.ComponentProps<
         "min-h-0 flex-1 group-data-[collapsible=icon]:overflow-hidden",
         className
       )}
-      {...props}
     >
       <div className="flex flex-col gap-2 p-2">
         {children}

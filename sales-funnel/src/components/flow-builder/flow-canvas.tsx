@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, forwardRef, useImperativeHandle, Node } from "react";
+import { useCallback, useRef, forwardRef, useImperativeHandle } from "react";
 import {
   ReactFlow,
   Background,
@@ -12,6 +12,8 @@ import {
   Connection,
   BackgroundVariant,
   ReactFlowProvider,
+  type Node,
+  type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useFlowStore } from "~/lib/flow-store";
@@ -24,7 +26,7 @@ export interface FlowCanvasHandle {
   addNodeToCenter: (type: string) => void;
 }
 
-const nodeTypes = {
+const nodeTypes: NodeTypes = {
   send_dm: SendDMNode,
   wait: WaitNode,
   condition: ConditionNode,

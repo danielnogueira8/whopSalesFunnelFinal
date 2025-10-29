@@ -13,10 +13,9 @@ export type ConditionNodeData = {
   value?: string;
 };
 
-export default function ConditionNode({
-  data,
-  selected,
-}: NodeProps<ConditionNodeData>) {
+export default function ConditionNode(props: NodeProps) {
+  const data = props.data as ConditionNodeData
+  const selected = props.selected
   return (
     <Card
       className={`w-56 ${selected ? "ring-2 ring-primary" : ""}`}
