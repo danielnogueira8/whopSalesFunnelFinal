@@ -3,7 +3,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { SidebarTrigger } from "~/components/ui/sidebar";
 import { useWhop } from "~/components/whop-context";
 import {
@@ -87,6 +86,10 @@ export default function SequencesPage() {
     return categories.find((c) => c.id === categoryId)?.color || "bg-gray-500";
   };
 
+  if (!experience) {
+    return null;
+  }
+
   return (
     <div className="@container/main flex flex-1 flex-col gap-2 px-4 lg:px-6">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -127,14 +130,9 @@ export default function SequencesPage() {
                     </div>
                     {needsProduct && (
                       <div className="mt-2">
-                        <Select disabled>
-                          <SelectTrigger className="w-64">
-                            <SelectValue placeholder="Select product (prod_id)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="">No products</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="w-64 h-10 rounded-md border bg-background px-3 py-2 text-sm opacity-50">
+                          Select product (coming soon)
+                        </div>
                       </div>
                     )}
                   </div>
