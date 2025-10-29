@@ -2,6 +2,7 @@
 
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -56,6 +57,20 @@ export default function NewSequencePage() {
   
   const selectedCategory = categories.find((cat) => cat.id === category);
   const needsProduct = category && ["cart_abandonment", "product_purchase", "upsell"].includes(category);
+
+  // Fetch products when product selection is needed
+  const { data: productsData } = useQuery({
+    queryKey: ["products", experienceId],
+    queryFn: async () => {
+      const response = await fetch(`/api/products?experienceId=${experienceId}`)
+      if (!response.ok) throw new Error("Failed to fetch products")
+      return response.json() as Promise<{ products: Array<{ id: string; title: string }> }>
+    },
+    enabled: needsProduct,
+  })
+
+  const products = productsData?.products || []
+  const selectedProduct = products.find((p) => p.id === productId)
 
   const handleCreate = () => {
     // TODO: Create sequence via API
@@ -123,13 +138,37 @@ export default function NewSequencePage() {
           )}
           {needsProduct && (
             <div className="space-y-2">
-              <Label htmlFor="productId">Product ID (optional)</Label>
-              <Input
-                id="productId"
-                placeholder="prod_xxxxxxxxxxxxxx"
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
-              />
+              <Label htmlFor="productId">Product (optional)</Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start">
+                    {selectedProduct ? selectedProduct.title : "Select a product (or leave empty for all)"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-auto">
+                  <DropdownMenuItem onClick={() => setProductId("")}>
+                    <span className="text-muted-foreground">All products</span>
+                  </DropdownMenuItem>
+                  {products.length > 0 && (
+                    <>
+                      <div className="h-px bg-border my-1" />
+                      {products.map((product) => (
+                        <DropdownMenuItem
+                          key={product.id}
+                          onClick={() => setProductId(product.id)}
+                        >
+                          {product.title}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  )}
+                  {products.length === 0 && (
+                    <DropdownMenuItem disabled>
+                      No products found
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <p className="text-xs text-muted-foreground">
                 Filter this sequence to a specific product. Leave empty to apply to all products.
               </p>
