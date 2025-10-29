@@ -124,7 +124,7 @@ function NewSequenceContent() {
               placeholder="Welcome New Members"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="border-border"
+              className="!border-border border-border"
             />
           </div>
           {selectedCategory && (
@@ -142,7 +142,7 @@ function NewSequenceContent() {
             <div className="space-y-2">
               <Label htmlFor="productId">Product (optional)</Label>
               <Select value={productId || undefined} onValueChange={(value) => setProductId(value === "all" ? "" : value)}>
-                <SelectTrigger id="productId" className="w-full border-border">
+                <SelectTrigger id="productId" className="w-full !border-border border-border">
                   <SelectValue placeholder="Select a product (or leave empty for all)" />
                 </SelectTrigger>
                 <SelectContent>

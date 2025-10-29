@@ -11,10 +11,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing experienceId" }, { status: 400 })
     }
 
-    // Approach 1: Try to get products directly from experience using REST API with expand parameter
+    // Approach 1: Get products directly from experience using REST API with expand parameter
     // According to Whop docs: GET /v2/experiences/{id}?expand=[products]
+    // Response structure: { "products": "<string>" } without expand, or array with expand
     try {
-      console.log('[Products API] Trying to fetch experience with products using expand parameter')
+      console.log('[Products API] Fetching experience with products using expand parameter')
       const experienceResponse = await fetch(
         `https://api.whop.com/api/v2/experiences/${experienceId}?expand=[products]`,
         {
@@ -26,27 +27,49 @@ export async function GET(req: NextRequest) {
         }
       )
 
-      if (experienceResponse.ok) {
-        const experienceData = await experienceResponse.json()
-        console.log('[Products API] Experience data structure:', Object.keys(experienceData))
-        
-        // Try to extract products from the experience response
-        const experienceProducts = 
-          experienceData?.products || 
-          experienceData?.data?.products ||
-          []
-        
-        if (Array.isArray(experienceProducts) && experienceProducts.length > 0) {
-          console.log(`[Products API] Successfully fetched ${experienceProducts.length} products from experience`)
-          return formatProductsResponse(experienceProducts)
-        } else {
-          console.log('[Products API] Experience response does not contain products array or array is empty')
+      if (!experienceResponse.ok) {
+        const errorText = await experienceResponse.text()
+        console.error(`[Products API] Experience request failed: ${experienceResponse.status} - ${errorText.substring(0, 200)}`)
+        throw new Error(`Failed to fetch experience: ${experienceResponse.status}`)
+      }
+
+      const experienceData = await experienceResponse.json()
+      console.log('[Products API] Experience response keys:', Object.keys(experienceData))
+      console.log('[Products API] Products field type:', typeof experienceData?.products)
+      console.log('[Products API] Products field value:', experienceData?.products)
+      
+      // Handle products field - could be string, array, or nested
+      let experienceProducts: any[] = []
+      
+      if (Array.isArray(experienceData?.products)) {
+        // When expanded, products is an array
+        experienceProducts = experienceData.products
+        console.log(`[Products API] Products is array with ${experienceProducts.length} items`)
+      } else if (typeof experienceData?.products === 'string') {
+        // Without expand, products might be a JSON string that needs parsing
+        try {
+          const parsed = JSON.parse(experienceData.products)
+          experienceProducts = Array.isArray(parsed) ? parsed : []
+        } catch (parseError) {
+          console.log('[Products API] Products string is not JSON, might be comma-separated IDs')
+          // If it's not JSON, might be comma-separated product IDs - we'd need to fetch each
+          // For now, skip this case
         }
+      } else if (experienceData?.data?.products) {
+        // Check nested structure
+        experienceProducts = Array.isArray(experienceData.data.products) 
+          ? experienceData.data.products 
+          : []
+      }
+      
+      if (Array.isArray(experienceProducts) && experienceProducts.length > 0) {
+        console.log(`[Products API] ✅ Successfully fetched ${experienceProducts.length} products from experience`)
+        return formatProductsResponse(experienceProducts)
       } else {
-        console.log(`[Products API] Experience expand request failed with status: ${experienceResponse.status}`)
+        console.log('[Products API] Products array is empty or not in expected format')
       }
     } catch (experienceError: any) {
-      console.error('[Products API] Failed to fetch experience with products:', experienceError)
+      console.error('[Products API] Failed to fetch experience with products:', experienceError.message || experienceError)
     }
 
     // Approach 2: Get company ID from experience and fetch all company products
