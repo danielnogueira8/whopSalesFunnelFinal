@@ -2,10 +2,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   typedRoutes: true,
-  // Explicitly disable Turbopack to use webpack
-  webpack: (config, { isServer }) => {
-    return config
-  },
+  // Empty turbopack config to silence the warning
+  turbopack: {},
 }
 
 export default nextConfig
