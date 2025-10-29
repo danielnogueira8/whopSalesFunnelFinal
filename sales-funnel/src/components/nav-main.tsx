@@ -29,7 +29,12 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} isActive={item.isActive} onClick={() => router.push(item.url as any)}>
+              <SidebarMenuButton 
+                tooltip={item.title} 
+                isActive={item.isActive} 
+                onClick={() => router.push(item.url as any)}
+                className="cursor-pointer transition-all hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground active:bg-sidebar-accent"
+              >
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
               </SidebarMenuButton>
