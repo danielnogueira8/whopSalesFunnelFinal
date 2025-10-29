@@ -2,21 +2,28 @@ import { NextRequest, NextResponse } from 'next/server'
 import { WhopExperience, whop } from '~/lib/whop'
 
 function getCorsHeaders(origin?: string | null) {
-	const allowedOrigins = ['https://www.whop.com', 'https://whop.com']
+	const allowedOrigins = ['https://www.whop.com', 'https://whop.com', 'http://localhost:3000']
 	const isAllowed = origin && allowedOrigins.some(allowed => origin.startsWith(allowed))
 	
-	return {
-		'Access-Control-Allow-Origin': isAllowed ? origin : '*',
+	// When using credentials, we must specify the exact origin, not '*'
+	const corsHeaders: Record<string, string> = {
 		'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 		'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 		'Access-Control-Allow-Credentials': 'true',
 	}
+	
+	// Only set Allow-Origin if it's an allowed origin (required for credentials)
+	if (isAllowed && origin) {
+		corsHeaders['Access-Control-Allow-Origin'] = origin
+	}
+	
+	return corsHeaders
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(req: NextRequest) {
 	return new NextResponse(null, {
 		status: 200,
-		headers: getCorsHeaders(),
+		headers: getCorsHeaders(req.headers.get('origin')),
 	})
 }
 
