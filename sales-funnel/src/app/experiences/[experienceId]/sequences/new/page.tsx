@@ -39,6 +39,7 @@ export default function NewSequencePage() {
   
   const [name, setName] = useState("");
   const [category, setCategory] = useState(categoryParam);
+  const [productId, setProductId] = useState("");
   
   // Update category when URL param changes
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function NewSequencePage() {
   }, [categoryParam]);
   
   const selectedCategory = categories.find((cat) => cat.id === category);
+  const needsProduct = category && ["cart_abandonment", "product_purchase", "upsell"].includes(category);
 
   const handleCreate = () => {
     // TODO: Create sequence via API
@@ -90,6 +92,20 @@ export default function NewSequencePage() {
                   {selectedCategory.name}
                 </div>
               </div>
+            </div>
+          )}
+          {needsProduct && (
+            <div className="space-y-2">
+              <Label htmlFor="productId">Product ID (optional)</Label>
+              <Input
+                id="productId"
+                placeholder="prod_xxxxxxxxxxxxxx"
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Filter this sequence to a specific product. Leave empty to apply to all products.
+              </p>
             </div>
           )}
           <div className="flex justify-end gap-2 pt-4">

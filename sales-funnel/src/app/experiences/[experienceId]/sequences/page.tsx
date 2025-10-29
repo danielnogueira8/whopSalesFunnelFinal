@@ -107,7 +107,6 @@ export default function SequencesPage() {
         );
         const CategoryIcon = category.icon;
 
-        const needsProduct = ["cart_abandonment", "product_purchase", "upsell"].includes(category.id)
         return (
           <Card key={category.id} className="overflow-hidden">
             <CardHeader className="border-b border-border">
@@ -128,13 +127,6 @@ export default function SequencesPage() {
                       {category.id === "upsell" && "Payment succeeded"}
                       {category.id === "win_back" && "Membership deactivated"}
                     </div>
-                    {needsProduct && (
-                      <div className="mt-2">
-                        <div className="w-64 h-10 rounded-md border bg-background px-3 py-2 text-sm opacity-50">
-                          Select product (coming soon)
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
                 <Button size="sm" variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border text-white ${category.hoverBg}`} onClick={() => router.push(`/experiences/${experience.id}/sequences/new?category=${category.id}` as any)}>
