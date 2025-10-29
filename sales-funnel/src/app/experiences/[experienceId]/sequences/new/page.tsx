@@ -171,7 +171,17 @@ function NewSequenceContent() {
           </BreadcrumbList>
         </Breadcrumb>
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Create New Sequence</h2>
+          <h2 className="text-3xl font-bold tracking-tight">
+            {(() => {
+              const base = "Create New "
+              if (selectedCategory) {
+                const label = selectedCategory.name?.trim()
+                const endsWithSequence = /sequence$/i.test(label)
+                return base + (endsWithSequence ? label : `${label} Sequence`)
+              }
+              return base + "Sequence"
+            })()}
+          </h2>
           <p className="text-muted-foreground">
             Set up a new automated DM sequence
           </p>
