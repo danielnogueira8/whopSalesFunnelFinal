@@ -14,8 +14,8 @@ export async function GET(request: Request) {
     }
 
     // Get company ID from Whop API
-    const { data: experience } = await whop.experiences.GetExperience({
-      experience_id: experienceId,
+    const experience = await whop.experiences.getExperience({
+      experienceId,
     });
 
     // Fetch sequences for this company
@@ -47,8 +47,8 @@ export async function POST(request: Request) {
     }
 
     // Get company ID from Whop API
-    const { data: experience } = await whop.experiences.GetExperience({
-      experience_id: experienceId,
+    const experience = await whop.experiences.getExperience({
+      experienceId,
     });
 
     // Create new sequence
