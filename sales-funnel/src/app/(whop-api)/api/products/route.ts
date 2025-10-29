@@ -15,40 +15,127 @@ export async function GET(req: NextRequest) {
     const experience = await whop.experiences.getExperience({ experienceId })
     const companyId = experience.company.id
 
-    // Fetch products using Whop REST API directly
-    // Using the REST API endpoint since SDK method structure is uncertain
-    const response = await fetch(
-      `https://api.whop.com/api/v2/products?company_id=${companyId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${env.WHOP_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    )
+    console.log(`[Products API] Fetching products for companyId: ${companyId}`)
 
-    if (!response.ok) {
-      throw new Error(`Whop API error: ${response.status}`)
+    // Try multiple approaches to fetch products
+    
+    // Approach 1: Try SDK method if available
+    let products: any[] = []
+    let errorMessage = ""
+    
+    try {
+      // Check if whop.products exists and try listProducts
+      if ('products' in whop && typeof (whop as any).products === 'object') {
+        console.log('[Products API] Trying SDK method: whop.products.listProducts')
+        const sdkResult = await (whop as any).products.listProducts?.({ companyId })
+        console.log('[Products API] SDK result:', JSON.stringify(sdkResult, null, 2))
+        
+        if (sdkResult) {
+          products = sdkResult?.data || sdkResult?.products || sdkResult?.nodes || (Array.isArray(sdkResult) ? sdkResult : [])
+          if (products.length > 0 || sdkResult) {
+            console.log('[Products API] Successfully fetched via SDK')
+            return formatProductsResponse(products)
+          }
+        }
+      }
+    } catch (sdkError: any) {
+      console.error('[Products API] SDK method failed:', sdkError)
+      errorMessage += `SDK: ${sdkError.message || sdkError}. `
     }
 
-    const data = await response.json()
-    
-    // Handle different response structures
-    const products = data?.data || data?.products || data || []
-    
-    return NextResponse.json({ 
-      products: (Array.isArray(products) ? products : []).map((p: any) => ({
-        id: p.id || p.prod_id || p.productId || "",
-        title: p.title || p.name || p.productTitle || "Unnamed Product"
-      }))
-    })
-  } catch (error) {
-    console.error("Error fetching products:", error)
+    // Approach 2: Try REST API endpoint variations
+    const endpointsToTry = [
+      `https://api.whop.com/api/v2/products?company_id=${companyId}`,
+      `https://api.whop.com/api/v2/products?companyId=${companyId}`,
+      `https://api.whop.com/api/v2/products`,
+    ]
+
+    for (const endpoint of endpointsToTry) {
+      try {
+        console.log(`[Products API] Trying REST endpoint: ${endpoint}`)
+        
+        const response = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${env.WHOP_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        })
+
+        const status = response.status
+        const responseText = await response.text()
+        
+        console.log(`[Products API] Response status: ${status}`)
+        console.log(`[Products API] Response body:`, responseText.substring(0, 500))
+
+        if (!response.ok) {
+          errorMessage += `Endpoint ${endpoint}: ${status} - ${responseText.substring(0, 200)}. `
+          continue
+        }
+
+        let data
+        try {
+          data = JSON.parse(responseText)
+        } catch (parseError) {
+          console.error('[Products API] Failed to parse JSON:', parseError)
+          errorMessage += `Failed to parse JSON. `
+          continue
+        }
+
+        console.log('[Products API] Parsed data structure:', Object.keys(data))
+
+        // Try different response structures
+        products = 
+          data?.data?.data || // Nested data
+          data?.data || // Direct data field
+          data?.products?.nodes || // GraphQL-style with nodes
+          data?.products || // Direct products field
+          (Array.isArray(data?.data) ? data.data : null) || // Array in data
+          (Array.isArray(data) ? data : null) || // Direct array
+          []
+
+        if (Array.isArray(products) && products.length >= 0) {
+          console.log(`[Products API] Successfully fetched ${products.length} products via REST API`)
+          return formatProductsResponse(products)
+        } else {
+          console.log('[Products API] No products found in expected structure, trying alternative parsing')
+        }
+      } catch (restError: any) {
+        console.error(`[Products API] REST endpoint ${endpoint} failed:`, restError)
+        errorMessage += `REST ${endpoint}: ${restError.message || restError}. `
+      }
+    }
+
+    // If we get here, none of the approaches worked
+    console.error('[Products API] All approaches failed. Errors:', errorMessage)
     return NextResponse.json(
-      { error: "Failed to fetch products", products: [] },
+      { 
+        error: "Failed to fetch products", 
+        details: errorMessage || "Unknown error",
+        products: [] 
+      },
+      { status: 500 }
+    )
+  } catch (error: any) {
+    console.error("[Products API] Unexpected error:", error)
+    return NextResponse.json(
+      { 
+        error: "Failed to fetch products", 
+        details: error?.message || String(error),
+        products: [] 
+      },
       { status: 500 }
     )
   }
+}
+
+function formatProductsResponse(products: any[]) {
+  return NextResponse.json({ 
+    products: products.map((p: any) => ({
+      id: p.id || p.prod_id || p.productId || p.prodId || "",
+      title: p.title || p.name || p.productTitle || "Unnamed Product"
+    }))
+  })
 }
 
 
