@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({
         debug: true,
         host: req.headers.get("host"),
-        xForwardedHost: req headers.get("x-forwarded-host"),
+        xForwardedHost: req.headers.get("x-forwarded-host"),
         referer: req.headers.get("referer"),
         verifiedUserId: verifiedUserId ?? null,
         experienceId,
