@@ -15,9 +15,12 @@ export const serverQueryClient = new QueryClient({
 })
 
 export function getApiUrl(path: string): string {
-	// Always use relative path for client-side fetching
+	// Build absolute URL for client-side fetching
+	// This ensures requests work when embedded on whop.com in production
 	// Server-side fetching is handled directly via the Whop SDK
-	return path
+	const base = env.NEXT_PUBLIC_VERCEL_URL.replace(/\/$/, '')
+	const normalized = path.startsWith('/') ? path : `/${path}`
+	return `${base}${normalized}`
 }
 
 export const whopExperienceQuery = (experienceId: string) => ({
