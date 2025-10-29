@@ -230,3 +230,17 @@
 [data-app-root] .border-border.border {
   border-color: hsl(var(--border)) !important;
 }
+
+/* Ensure Select dropdown (content) renders like shadcn popover inside iframe */
+[data-app-root] [data-slot="select-content"] {
+  background-color: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+  box-shadow: 0px 10px 15px -3px rgb(0 0 0 / 0.1), 0px 4px 6px -4px rgb(0 0 0 / 0.1) !important; /* shadow-md */
+}
+
+/* Ensure Select items hover state uses accent like shadcn */
+[data-app-root] [data-slot="select-item"]:where([data-highlighted], :hover) {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
