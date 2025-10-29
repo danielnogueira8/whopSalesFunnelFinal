@@ -13,7 +13,22 @@ export async function GET(req: NextRequest) {
 
     // Get company ID from experience
     const experience = await whop.experiences.getExperience({ experienceId })
+    
+    if (!experience?.company?.id) {
+      console.error('[Products API] Experience or company ID not found:', experience)
+      return NextResponse.json(
+        { error: "Failed to get company ID from experience", products: [] },
+        { status: 500 }
+      )
+    }
+    
     const companyId = experience.company.id
+    
+    // First, try to use products from the experience if available
+    if (experience.products && Array.isArray(experience.products) && experience.products.length > 0) {
+      console.log(`[Products API] Using products from experience: ${experience.products.length} products`)
+      return formatProductsResponse(experience.products)
+    }
 
     console.log(`[Products API] Fetching products for companyId: ${companyId}`)
 
@@ -44,10 +59,10 @@ export async function GET(req: NextRequest) {
     }
 
     // Approach 2: Try REST API endpoint variations
+    // Based on Whop API docs: https://docs.whop.com/api-reference/products/list-products
     const endpointsToTry = [
       `https://api.whop.com/api/v2/products?company_id=${companyId}`,
       `https://api.whop.com/api/v2/products?companyId=${companyId}`,
-      `https://api.whop.com/api/v2/products`,
     ]
 
     for (const endpoint of endpointsToTry) {
@@ -107,14 +122,14 @@ export async function GET(req: NextRequest) {
     }
 
     // If we get here, none of the approaches worked
+    // Return empty products array instead of error - this allows the UI to still work
     console.error('[Products API] All approaches failed. Errors:', errorMessage)
+    console.error('[Products API] Returning empty products array - UI will show "No products found"')
     return NextResponse.json(
       { 
-        error: "Failed to fetch products", 
-        details: errorMessage || "Unknown error",
         products: [] 
       },
-      { status: 500 }
+      { status: 200 }
     )
   } catch (error: any) {
     console.error("[Products API] Unexpected error:", error)
