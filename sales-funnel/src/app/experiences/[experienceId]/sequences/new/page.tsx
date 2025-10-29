@@ -56,7 +56,7 @@ export default function NewSequencePage() {
   }, [categoryParam]);
   
   const selectedCategory = categories.find((cat) => cat.id === category);
-  const needsProduct = category && ["cart_abandonment", "product_purchase", "upsell"].includes(category);
+  const needsProduct = Boolean(category && ["cart_abandonment", "product_purchase", "upsell"].includes(category));
 
   // Fetch products when product selection is needed
   const { data: productsData } = useQuery({
