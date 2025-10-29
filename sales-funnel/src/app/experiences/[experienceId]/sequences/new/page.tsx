@@ -231,18 +231,13 @@ function NewSequenceContent() {
                   )}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Filter this sequence to a specific product. Leave empty to apply to all products.
+              </p>
               <div className="mt-2 rounded-md border border-border bg-secondary/40 p-3">
-                <div className="flex items-start gap-2">
-                  <div className="mt-0.5 h-4 w-4 rounded-full bg-muted-foreground/20" />
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">
-                      Filter this sequence to a specific product. Leave empty to apply to all products.
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      If you have a product that's not listed here, go to the <span className="font-medium">Products</span> section inside your Whop and include the app <span className="font-medium">Sales Funnel</span> with that product.
-                    </p>
-                  </div>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  If you have a product that's not listed here, go to the <span className="font-medium">Products</span> section inside your Whop and include the app <span className="font-medium">Sales Funnel</span> with that product.
+                </p>
               </div>
             </div>
           )}
