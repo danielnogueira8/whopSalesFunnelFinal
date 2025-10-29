@@ -7,6 +7,14 @@ import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -59,6 +67,25 @@ export default function NewSequencePage() {
   return (
     <div className="@container/main flex flex-1 flex-col gap-2 px-4 lg:px-6">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => router.push(`/experiences/${experienceId}/dashboard` as any)}>
+                Dashboard
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onClick={() => router.push(`/experiences/${experienceId}/sequences` as any)}>
+                Sequences
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Create New Sequence</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Create New Sequence</h2>
           <p className="text-muted-foreground">
