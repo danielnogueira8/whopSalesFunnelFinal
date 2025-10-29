@@ -29,6 +29,22 @@ export async function GET(req: NextRequest) {
       }
     } catch {}
 
+    // Dev fallback: allow token via query (?whop-dev-user-token=...) or header
+    if (!verifiedUserId) {
+      try {
+        const devToken = searchParams.get("whop-dev-user-token") || req.headers.get("whop-dev-user-token") || req.headers.get("x-whop-user-token")
+        if (devToken) {
+          const h = new Headers()
+          h.set("x-whop-user-token", devToken)
+          const verifiedDev = await verifyUserToken(h as any)
+          if (verifiedDev?.userId) {
+            verifiedUserId = verifiedDev.userId
+            scopedByUser = scopedByUser.withUser(verifiedDev.userId)
+          }
+        }
+      } catch {}
+    }
+
     if (debug) {
       const headersPreview: Record<string, string | string[]> = {}
       for (const [k, v] of (req.headers as any)) {

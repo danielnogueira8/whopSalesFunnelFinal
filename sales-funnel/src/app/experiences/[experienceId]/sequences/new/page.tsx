@@ -113,15 +113,22 @@ function NewSequenceContent() {
       // Server fallback (handles non-iframe or limited client env)
       // Prefer calling through Whop-proxied origin if available so headers are preserved
       let url = `/api/products?experienceId=${experienceId}`
+      let headers: Record<string, string> | undefined
       try {
         // __internal_execSync is available inside Whop iframe; optional
         const anyWindow = window as any
         const apiOrigin = anyWindow?.__WHOP_SDK__?.apiOrigin
           ?? anyWindow?.__internal_execSync?.("getAppApiOrigin", {})?.apiOrigin
         if (apiOrigin) url = `${apiOrigin}/api/products?experienceId=${experienceId}`
+        // Dev: forward whop-dev-user-token if present
+        const params = new URLSearchParams(window.location.search)
+        const devToken = params.get("whop-dev-user-token")
+        if (devToken) {
+          headers = { "whop-dev-user-token": devToken }
+        }
       } catch {}
 
-      const response = await fetch(url, { credentials: "include" })
+      const response = await fetch(url, { credentials: "include", headers })
       if (!response.ok) throw new Error("Failed to fetch products")
       return response.json() as Promise<{ products: Array<{ id: string; title: string }> }>
     },
