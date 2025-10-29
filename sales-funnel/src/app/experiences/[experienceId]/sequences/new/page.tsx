@@ -63,6 +63,46 @@ function NewSequenceContent() {
   const { data: productsData } = useQuery({
     queryKey: ["products", experienceId],
     queryFn: async () => {
+      // Try client-side SDK when running inside Whop iframe; fallback to server route
+      if (typeof window !== "undefined") {
+        try {
+          const mod = await import("@whop/api")
+          const sdk = mod.WhopServerSdk({
+            appId: process.env.NEXT_PUBLIC_WHOP_APP_ID as string,
+            // When embedded in Whop, user token is auto-injected and company can be set here
+            companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID as string,
+          } as any)
+
+          // 1) Experience access passes
+          try {
+            const res: any = await sdk.experiences.listAccessPassesForExperience({ experienceId })
+            const items: any[] = (res?.data || res?.accessPasses || (Array.isArray(res) ? res : [])) as any[]
+            if (Array.isArray(items) && items.length > 0) {
+              return { products: items.map((p: any) => ({ id: p.id, title: p.title || p.name || "Unnamed Product" })) }
+            }
+          } catch {}
+
+          // 2) Company access passes
+          try {
+            const res2: any = await sdk.companies.listAccessPasses({ companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID as string })
+            const items2: any[] = (res2?.data || res2?.accessPasses || (Array.isArray(res2) ? res2 : [])) as any[]
+            if (Array.isArray(items2) && items2.length > 0) {
+              return { products: items2.map((p: any) => ({ id: p.id, title: p.title || p.name || "Unnamed Product" })) }
+            }
+          } catch {}
+
+          // 3) Plans as final fallback
+          try {
+            const res3: any = await sdk.companies.listPlans({ companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID as string })
+            const items3: any[] = (res3?.data || res3?.plans || (Array.isArray(res3) ? res3 : [])) as any[]
+            if (Array.isArray(items3) && items3.length > 0) {
+              return { products: items3.map((p: any) => ({ id: p.id, title: p.title || p.name || "Unnamed Plan" })) }
+            }
+          } catch {}
+        } catch {}
+      }
+
+      // Server fallback (handles non-iframe or limited client env)
       const response = await fetch(`/api/products?experienceId=${experienceId}`)
       if (!response.ok) throw new Error("Failed to fetch products")
       return response.json() as Promise<{ products: Array<{ id: string; title: string }> }>
