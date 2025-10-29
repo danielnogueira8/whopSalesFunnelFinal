@@ -140,12 +140,12 @@ function NewSequenceContent() {
           {needsProduct && (
             <div className="space-y-2">
               <Label htmlFor="productId">Product (optional)</Label>
-              <Select value={productId} onValueChange={setProductId}>
+              <Select value={productId || undefined} onValueChange={(value) => setProductId(value === "all" ? "" : value)}>
                 <SelectTrigger id="productId" className="w-full">
                   <SelectValue placeholder="Select a product (or leave empty for all)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All products</SelectItem>
+                  <SelectItem value="all">All products</SelectItem>
                   {products.length > 0 && (
                     <>
                       {products.map((product) => (
@@ -156,9 +156,9 @@ function NewSequenceContent() {
                     </>
                   )}
                   {products.length === 0 && (
-                    <SelectItem value="" disabled>
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
                       No products found
-                    </SelectItem>
+                    </div>
                   )}
                 </SelectContent>
               </Select>
