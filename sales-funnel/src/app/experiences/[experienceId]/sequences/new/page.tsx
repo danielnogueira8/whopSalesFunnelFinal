@@ -124,12 +124,13 @@ function NewSequenceContent() {
               placeholder="Welcome New Members"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              className="border-border"
             />
           </div>
           {selectedCategory && (
             <div className="space-y-2">
               <Label>Category</Label>
-              <div className="flex h-10 items-center rounded-md border px-3 text-sm">
+              <div className="flex h-10 items-center rounded-md border border-border px-3 text-sm">
                 <div className="flex items-center gap-2">
                   <selectedCategory.icon className="h-4 w-4" />
                   {selectedCategory.name}
@@ -141,7 +142,7 @@ function NewSequenceContent() {
             <div className="space-y-2">
               <Label htmlFor="productId">Product (optional)</Label>
               <Select value={productId || undefined} onValueChange={(value) => setProductId(value === "all" ? "" : value)}>
-                <SelectTrigger id="productId" className="w-full">
+                <SelectTrigger id="productId" className="w-full border-border">
                   <SelectValue placeholder="Select a product (or leave empty for all)" />
                 </SelectTrigger>
                 <SelectContent>
