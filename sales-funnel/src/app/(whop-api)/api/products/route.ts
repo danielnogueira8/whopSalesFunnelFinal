@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const experienceId = searchParams.get("experienceId")
+    const debug = searchParams.get("debug") === "1"
 
     if (!experienceId) {
       return NextResponse.json({ error: "Missing experienceId" }, { status: 400 })
@@ -19,12 +20,31 @@ export async function GET(req: NextRequest) {
     // Preferred approach: Use Whop GraphQL SDK methods (works inside Whop iframe or with privileged App API key)
     // Try to scope with the real iframe user if available
     let scopedByUser = whop
+    let verifiedUserId: string | undefined
     try {
       const verified = await verifyUserToken(req.headers as any)
       if (verified?.userId) {
+        verifiedUserId = verified.userId
         scopedByUser = scopedByUser.withUser(verified.userId)
       }
     } catch {}
+
+    if (debug) {
+      const headersPreview: Record<string, string | string[]> = {}
+      for (const [k, v] of (req.headers as any)) {
+        if (String(k).toLowerCase().startsWith("authorization")) continue
+        headersPreview[k] = v
+      }
+      return NextResponse.json({
+        debug: true,
+        host: req.headers.get("host"),
+        xForwardedHost: req headers.get("x-forwarded-host"),
+        referer: req.headers.get("referer"),
+        verifiedUserId: verifiedUserId ?? null,
+        experienceId,
+        headers: Object.keys(headersPreview),
+      })
+    }
     // 1) Try to list access passes for the experience directly (some SDKs require explicit pagination args)
     try {
       const fromExperience = await scopedByUser.experiences.listAccessPassesForExperience({ experienceId }) as any

@@ -73,6 +73,14 @@ function NewSequenceContent() {
             companyId: process.env.NEXT_PUBLIC_WHOP_COMPANY_ID as string,
           } as any)
 
+          // Log embed diagnostics to the console to help debug deployment
+          try {
+            const anyWindow = window as any
+            const apiOrigin = anyWindow?.__WHOP_SDK__?.apiOrigin
+              ?? anyWindow?.__internal_execSync?.("getAppApiOrigin", {})?.apiOrigin
+            console.log("[Whop SDK] iframe=", window.top !== window.self, "referrer=", document.referrer, "apiOrigin=", apiOrigin)
+          } catch {}
+
           // 1) Experience access passes
           try {
             const res: any = await sdk.experiences.listAccessPassesForExperience({ experienceId })
@@ -133,11 +141,9 @@ function NewSequenceContent() {
   return (
     <div className="@container/main flex flex-1 flex-col gap-2 px-4 lg:px-6">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-        {process.env.NODE_ENV !== "production" && (
-          <div className="rounded-md border border-border bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
-            Embedded in Whop iframe: {typeof window !== "undefined" && window.top !== window.self ? "yes" : "no"}
-          </div>
-        )}
+        <div className="rounded-md border border-border bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
+          Embedded in Whop iframe: {typeof window !== "undefined" && window.top !== window.self ? "yes" : "no"}
+        </div>
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
