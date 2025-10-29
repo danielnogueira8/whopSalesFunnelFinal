@@ -14,7 +14,7 @@ import {
   MessageSquareMore,
   Plus,
 } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const categories = [
   {
@@ -71,6 +71,7 @@ const categories = [
 
 export default function SequencesPage() {
   const { experience } = useWhop();
+  const router = useRouter();
   const sequences: Array<{
     id: string;
     name: string;
@@ -138,11 +139,9 @@ export default function SequencesPage() {
                     )}
                   </div>
                 </div>
-                <Button asChild size="sm" variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border text-white ${category.hoverBg}`}>
-                  <Link href={`/experiences/${experience.id}/sequences/new?category=${category.id}`}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create New
-                  </Link>
+                <Button size="sm" variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border text-white ${category.hoverBg}`} onClick={() => router.push(`/experiences/${experience.id}/sequences/new?category=${category.id}` as any)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New
                 </Button>
               </div>
             </CardHeader>
@@ -153,10 +152,8 @@ export default function SequencesPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     No sequences in this category yet
                   </p>
-                  <Button asChild variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border text-white ${category.hoverBg}`}>
-                    <Link href={`/experiences/${experience.id}/sequences/new?category=${category.id}`}>
-                      Create your first sequence
-                    </Link>
+                  <Button variant="default" data-color="category" className={`${category.buttonBg} ${category.border} border text-white ${category.hoverBg}`} onClick={() => router.push(`/experiences/${experience.id}/sequences/new?category=${category.id}` as any)}>
+                    Create your first sequence
                   </Button>
                 </div>
               ) : (
@@ -194,12 +191,8 @@ export default function SequencesPage() {
                           >
                             {sequence.status}
                           </Badge>
-                          <Button asChild size="sm" variant="ghost">
-                            <Link
-                              href={`/experiences/${experience.id}/sequences/${sequence.id}`}
-                            >
-                              Edit
-                            </Link>
+                          <Button size="sm" variant="ghost" onClick={() => router.push(`/experiences/${experience.id}/sequences/${sequence.id}` as any)}>
+                            Edit
                           </Button>
                         </div>
                       </div>
