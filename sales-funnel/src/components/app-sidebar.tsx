@@ -77,7 +77,7 @@ function AppSidebarContent() {
       title: "Sequences",
       url: `/experiences/${experienceId}/sequences`,
       icon: Workflow,
-      isActive: pathname.includes("/sequences") && !pathname.includes("/new"),
+      isActive: pathname.includes("/sequences"),
     },
     {
       title: "Analytics",
