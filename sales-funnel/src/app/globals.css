@@ -202,3 +202,26 @@
 [data-app-root] [data-slot="button"][data-variant="default"]:not([data-color="category"]):hover {
   background-color: hsl(var(--primary) / 0.9);
 }
+
+/* Ensure inputs and selects use light grey border color inside iframe */
+[data-app-root] [data-slot="input"] {
+  border-color: hsl(var(--border)) !important;
+}
+[data-app-root] [data-slot="input"]:focus-visible {
+  border-color: hsl(var(--border)) !important;
+}
+
+[data-app-root] [data-slot="select-trigger"] {
+  border-color: hsl(var(--border)) !important;
+}
+[data-app-root] [data-slot="select-trigger"]:focus-visible {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Ensure outline buttons use light grey border color inside iframe */
+[data-app-root] [data-slot="button"][data-variant="outline"] {
+  border-color: hsl(var(--border)) !important;
+}
+[data-app-root] [data-slot="button"][data-variant="outline"]:focus-visible {
+  border-color: hsl(var(--border)) !important;
+}
