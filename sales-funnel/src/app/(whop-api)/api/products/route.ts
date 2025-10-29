@@ -3,6 +3,10 @@ import { whop } from "~/lib/whop"
 import { env } from "~/env"
 import { verifyUserToken } from "@whop/api"
 
+// Ensure Node.js runtime so Whop headers are preserved and verifiable
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
