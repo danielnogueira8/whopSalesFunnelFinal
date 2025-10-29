@@ -22,12 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   HandHeart,
   ShoppingCart,
   Tag,
   ArrowUpCircle,
   MessageSquareMore,
+  Info,
 } from "lucide-react";
 
 const categories = [
@@ -245,9 +247,19 @@ function NewSequenceContent() {
                 Filter this sequence to a specific product. Leave empty to apply to all products.
               </p>
               <div className="mt-2 rounded-md border border-border bg-secondary/40 p-3">
-                <p className="text-xs text-muted-foreground">
-                  If you have a product that's not listed here, go to the <span className="font-medium">Products</span> section inside your Whop and include the app <span className="font-medium">Sales Funnel</span> with that product.
-                </p>
+                <div className="flex items-start gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span aria-label="Info" className="mt-0.5 inline-flex h-4 w-4 items-center justify-center text-muted-foreground">
+                        <Info className="h-4 w-4" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent sideOffset={6}>Important information</TooltipContent>
+                  </Tooltip>
+                  <p className="text-xs text-muted-foreground">
+                    If you have a product that's not listed here, go to the <span className="font-medium">Products</span> section inside your Whop and include the app <span className="font-medium">Sales Funnel</span> with that product.
+                  </p>
+                </div>
               </div>
             </div>
           )}
