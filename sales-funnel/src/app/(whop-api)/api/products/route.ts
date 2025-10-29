@@ -11,7 +11,45 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing experienceId" }, { status: 400 })
     }
 
-    // Get company ID from experience
+    // Approach 1: Try to get products directly from experience using REST API with expand parameter
+    // According to Whop docs: GET /v2/experiences/{id}?expand=[products]
+    try {
+      console.log('[Products API] Trying to fetch experience with products using expand parameter')
+      const experienceResponse = await fetch(
+        `https://api.whop.com/api/v2/experiences/${experienceId}?expand=[products]`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${env.WHOP_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+
+      if (experienceResponse.ok) {
+        const experienceData = await experienceResponse.json()
+        console.log('[Products API] Experience data structure:', Object.keys(experienceData))
+        
+        // Try to extract products from the experience response
+        const experienceProducts = 
+          experienceData?.products || 
+          experienceData?.data?.products ||
+          []
+        
+        if (Array.isArray(experienceProducts) && experienceProducts.length > 0) {
+          console.log(`[Products API] Successfully fetched ${experienceProducts.length} products from experience`)
+          return formatProductsResponse(experienceProducts)
+        } else {
+          console.log('[Products API] Experience response does not contain products array or array is empty')
+        }
+      } else {
+        console.log(`[Products API] Experience expand request failed with status: ${experienceResponse.status}`)
+      }
+    } catch (experienceError: any) {
+      console.error('[Products API] Failed to fetch experience with products:', experienceError)
+    }
+
+    // Approach 2: Get company ID from experience and fetch all company products
     const experience = await whop.experiences.getExperience({ experienceId })
     
     if (!experience?.company?.id) {
@@ -24,13 +62,11 @@ export async function GET(req: NextRequest) {
     
     const companyId = experience.company.id
     
-    // Note: Some Experience payloads may not include products; rely on products API instead
-
     console.log(`[Products API] Fetching products for companyId: ${companyId}`)
 
     // Try multiple approaches to fetch products
     
-    // Approach 1: Try SDK method if available
+    // Approach 3: Try SDK method if available
     let products: any[] = []
     let errorMessage = ""
     
@@ -54,7 +90,7 @@ export async function GET(req: NextRequest) {
       errorMessage += `SDK: ${sdkError.message || sdkError}. `
     }
 
-    // Approach 2: Try REST API endpoint variations
+    // Approach 4: Try REST API endpoint variations to list all company products
     // Based on Whop API docs: https://docs.whop.com/api-reference/products/list-products
     const endpointsToTry = [
       `https://api.whop.com/api/v2/products?company_id=${companyId}`,
