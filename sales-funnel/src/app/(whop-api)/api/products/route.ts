@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     // Preferred approach: Use Whop GraphQL SDK methods (works inside Whop iframe or with privileged App API key)
     // 1) Try to list access passes for the experience directly (some SDKs require explicit pagination args)
     try {
-      const fromExperience = await whop.experiences.listAccessPassesForExperience({ experienceId, limit: 100 }) as any
+      const fromExperience = await whop.experiences.listAccessPassesForExperience({ experienceId }) as any
       const items = (fromExperience?.data || fromExperience?.accessPasses || (Array.isArray(fromExperience) ? fromExperience : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
 
     // 2a) Try company access passes
     try {
-      const fromCompany = await whop.companies.listAccessPasses({ companyId, limit: 100 }) as any
+      const fromCompany = await whop.companies.listAccessPasses({ companyId }) as any
       const items = (fromCompany?.data || fromCompany?.accessPasses || (Array.isArray(fromCompany) ? fromCompany : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
 
     // 2b) Last resort: list plans (if your UX treats plans as selectable products)
     try {
-      const plansRes = await whop.companies.listPlans({ companyId, limit: 100 }) as any
+      const plansRes = await whop.companies.listPlans({ companyId }) as any
       const items = (plansRes?.data || plansRes?.plans || (Array.isArray(plansRes) ? plansRes : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
     // 3) Try scoping with withCompany helper (some SDK setups require it)
     try {
       const scoped = whop.withCompany(companyId)
-      const alt = await scoped.companies.listAccessPasses({ companyId, limit: 100 }) as any
+      const alt = await scoped.companies.listAccessPasses({ companyId }) as any
       const items = (alt?.data || alt?.accessPasses || (Array.isArray(alt) ? alt : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
