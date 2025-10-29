@@ -244,3 +244,10 @@
   background-color: hsl(var(--accent)) !important;
   color: hsl(var(--accent-foreground)) !important;
 }
+
+/* Ensure active sidebar item has light grey background inside iframe */
+[data-app-root] [data-slot="sidebar-menu-button"][data-active="true"],
+[data-app-root] [data-slot="sidebar-menu-sub-button"][data-active="true"] {
+  background-color: hsl(var(--sidebar-accent)) !important;
+  color: hsl(var(--sidebar-accent-foreground)) !important;
+}
