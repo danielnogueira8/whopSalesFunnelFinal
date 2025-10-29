@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { whop } from "~/lib/whop"
 import { env } from "~/env"
+import { verifyUserToken } from "@whop/api"
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,9 +13,17 @@ export async function GET(req: NextRequest) {
     }
 
     // Preferred approach: Use Whop GraphQL SDK methods (works inside Whop iframe or with privileged App API key)
+    // Try to scope with the real iframe user if available
+    let scopedByUser = whop
+    try {
+      const verified = await verifyUserToken(req.headers as any)
+      if (verified?.userId) {
+        scopedByUser = scopedByUser.withUser(verified.userId)
+      }
+    } catch {}
     // 1) Try to list access passes for the experience directly (some SDKs require explicit pagination args)
     try {
-      const fromExperience = await whop.experiences.listAccessPassesForExperience({ experienceId }) as any
+      const fromExperience = await scopedByUser.experiences.listAccessPassesForExperience({ experienceId }) as any
       const items = (fromExperience?.data || fromExperience?.accessPasses || (Array.isArray(fromExperience) ? fromExperience : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
@@ -26,7 +35,7 @@ export async function GET(req: NextRequest) {
     // 2) Fallback: get companyId from experience, then list company access passes or plans
     let companyId = ""
     try {
-      const experience = await whop.experiences.getExperience({ experienceId }) as any
+      const experience = await scopedByUser.experiences.getExperience({ experienceId }) as any
       companyId = experience?.company?.id || ""
       // Some responses include accessPasses directly on experience
       const expPasses = (experience?.accessPasses || experience?.data?.accessPasses) as any[] | undefined
@@ -48,7 +57,7 @@ export async function GET(req: NextRequest) {
 
     // 2a) Try company access passes
     try {
-      const fromCompany = await whop.companies.listAccessPasses({ companyId }) as any
+      const fromCompany = await scopedByUser.withCompany(companyId).companies.listAccessPasses({ companyId }) as any
       const items = (fromCompany?.data || fromCompany?.accessPasses || (Array.isArray(fromCompany) ? fromCompany : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
@@ -59,7 +68,7 @@ export async function GET(req: NextRequest) {
 
     // 2b) Last resort: list plans (if your UX treats plans as selectable products)
     try {
-      const plansRes = await whop.companies.listPlans({ companyId }) as any
+      const plansRes = await scopedByUser.withCompany(companyId).companies.listPlans({ companyId }) as any
       const items = (plansRes?.data || plansRes?.plans || (Array.isArray(plansRes) ? plansRes : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
         return formatProductsResponse(items)
@@ -70,7 +79,7 @@ export async function GET(req: NextRequest) {
 
     // 3) Try scoping with withCompany and withUser (some SDK setups require both)
     try {
-      const scoped = whop.withCompany(companyId).withUser(env.NEXT_PUBLIC_WHOP_AGENT_USER_ID)
+      const scoped = scopedByUser.withCompany(companyId).withUser(env.NEXT_PUBLIC_WHOP_AGENT_USER_ID)
       const alt = await scoped.companies.listAccessPasses({ companyId }) as any
       const items = (alt?.data || alt?.accessPasses || (Array.isArray(alt) ? alt : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
@@ -82,7 +91,7 @@ export async function GET(req: NextRequest) {
 
     // 4) As a final attempt, try scoped plans
     try {
-      const scoped = whop.withCompany(companyId).withUser(env.NEXT_PUBLIC_WHOP_AGENT_USER_ID)
+      const scoped = scopedByUser.withCompany(companyId).withUser(env.NEXT_PUBLIC_WHOP_AGENT_USER_ID)
       const plansRes = await scoped.companies.listPlans({ companyId }) as any
       const items = (plansRes?.data || plansRes?.plans || (Array.isArray(plansRes) ? plansRes : [])) as any[]
       if (Array.isArray(items) && items.length >= 0) {
