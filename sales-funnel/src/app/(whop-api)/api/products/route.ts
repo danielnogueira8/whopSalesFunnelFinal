@@ -24,11 +24,7 @@ export async function GET(req: NextRequest) {
     
     const companyId = experience.company.id
     
-    // First, try to use products from the experience if available
-    if (experience.products && Array.isArray(experience.products) && experience.products.length > 0) {
-      console.log(`[Products API] Using products from experience: ${experience.products.length} products`)
-      return formatProductsResponse(experience.products)
-    }
+    // Note: Some Experience payloads may not include products; rely on products API instead
 
     console.log(`[Products API] Fetching products for companyId: ${companyId}`)
 
