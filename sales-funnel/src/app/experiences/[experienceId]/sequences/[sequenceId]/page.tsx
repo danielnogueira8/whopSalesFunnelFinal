@@ -93,6 +93,7 @@ export default function SequenceBuilderPage() {
           </Button>
         </div>
       </div>
+      </div>
 
       {/* Linear sequence editor */}
       <div className="flex-1">
