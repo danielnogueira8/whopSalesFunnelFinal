@@ -251,3 +251,8 @@
   background-color: hsl(var(--sidebar-accent)) !important;
   color: hsl(var(--sidebar-accent-foreground)) !important;
 }
+
+/* Ensure input placeholders are light grey inside iframe */
+[data-app-root] [data-slot="input"]::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+}
