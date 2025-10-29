@@ -16,11 +16,12 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import {
   HandHeart,
   ShoppingCart,
@@ -139,36 +140,28 @@ export default function NewSequencePage() {
           {needsProduct && (
             <div className="space-y-2">
               <Label htmlFor="productId">Product (optional)</Label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    {selectedProduct ? selectedProduct.title : "Select a product (or leave empty for all)"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-auto">
-                  <DropdownMenuItem onClick={() => setProductId("")}>
-                    <span className="text-muted-foreground">All products</span>
-                  </DropdownMenuItem>
+              <Select value={productId} onValueChange={setProductId}>
+                <SelectTrigger id="productId" className="w-full">
+                  <SelectValue placeholder="Select a product (or leave empty for all)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All products</SelectItem>
                   {products.length > 0 && (
                     <>
-                      <div className="h-px bg-border my-1" />
                       {products.map((product) => (
-                        <DropdownMenuItem
-                          key={product.id}
-                          onClick={() => setProductId(product.id)}
-                        >
+                        <SelectItem key={product.id} value={product.id}>
                           {product.title}
-                        </DropdownMenuItem>
+                        </SelectItem>
                       ))}
                     </>
                   )}
                   {products.length === 0 && (
-                    <DropdownMenuItem disabled>
+                    <SelectItem value="" disabled>
                       No products found
-                    </DropdownMenuItem>
+                    </SelectItem>
                   )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </SelectContent>
+              </Select>
               <p className="text-xs text-muted-foreground">
                 Filter this sequence to a specific product. Leave empty to apply to all products.
               </p>
