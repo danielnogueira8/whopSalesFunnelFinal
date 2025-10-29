@@ -1,7 +1,7 @@
 {
-  "buildCommand": "cd sales-funnel && npm install && npm run build",
-  "devCommand": "cd sales-funnel && npm run dev",
-  "installCommand": "cd sales-funnel && npm install",
+  "buildCommand": "npm install && npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
   "framework": "nextjs"
 }
 
