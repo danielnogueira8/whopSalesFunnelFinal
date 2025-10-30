@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { SidebarTrigger } from "~/components/ui/sidebar";
 import {
   HandHeart,
   ShoppingCart,
@@ -150,25 +151,28 @@ function NewSequenceContent() {
   return (
     <div className="@container/main flex flex-1 flex-col gap-2 px-4 lg:px-6">
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink onClick={() => router.push(`/experiences/${experienceId}/dashboard` as any)}>
-                Dashboard
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink onClick={() => router.push(`/experiences/${experienceId}/sequences` as any)}>
-                Sequences
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Create New Sequence</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="-ml-1" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={() => router.push(`/experiences/${experienceId}/dashboard` as any)}>
+                  Dashboard
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={() => router.push(`/experiences/${experienceId}/sequences` as any)}>
+                  Sequences
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Create New Sequence</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
         <div>
           <h2 className="text-3xl font-bold tracking-tight">
             {(() => {
