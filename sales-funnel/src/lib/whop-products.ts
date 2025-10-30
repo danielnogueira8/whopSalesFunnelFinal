@@ -4,29 +4,44 @@ import { whop } from "~/lib/whop"
 type ProductOut = { id: string; title: string }
 
 function normalizeProducts(input: any): ProductOut[] {
-  if (!input) {
-    console.log("[normalizeProducts] input is null/undefined")
-    return []
-  }
+  if (!input) return []
 
-  const arr =
-    (Array.isArray(input?.data) ? input.data : undefined) ||
-    input?.data?.accessPasses ||
-    input?.data?.plans ||
-    input?.data?.data ||
-    input?.products?.nodes ||
-    input?.products ||
-    input?.accessPasses ||
-    input?.plans ||
-    (Array.isArray(input) ? input : undefined) ||
-    []
-
-  if (!Array.isArray(arr)) {
-    console.log("[normalizeProducts] Could not extract array, input structure:", JSON.stringify(input, null, 2).substring(0, 300))
-    return []
-  }
+  // Handle GraphQL connection structure: { accessPasses: { nodes: [...] } }
+  let arr: any[] = []
   
-  console.log("[normalizeProducts] Extracted array with", arr.length, "items, sample:", arr[0] ? JSON.stringify(arr[0], null, 2).substring(0, 200) : "none")
+  if (input?.accessPasses?.nodes && Array.isArray(input.accessPasses.nodes)) {
+    // Extract AccessPass objects directly
+    arr = input.accessPasses.nodes
+  } else if (input?.plans?.nodes && Array.isArray(input.plans.nodes)) {
+    // Extract Plan objects, then get their accessPass if available
+    arr = input.plans.nodes.map((plan: any) => plan?.accessPass || plan).filter(Boolean)
+  } else if (Array.isArray(input?.data)) {
+    arr = input.data
+  } else if (input?.data?.accessPasses?.nodes && Array.isArray(input.data.accessPasses.nodes)) {
+    arr = input.data.accessPasses.nodes
+  } else if (input?.data?.plans?.nodes && Array.isArray(input.data.plans.nodes)) {
+    arr = input.data.plans.nodes.map((plan: any) => plan?.accessPass || plan).filter(Boolean)
+  } else if (input?.data?.accessPasses && Array.isArray(input.data.accessPasses)) {
+    arr = input.data.accessPasses
+  } else if (input?.data?.plans && Array.isArray(input.data.plans)) {
+    arr = input.data.plans.map((plan: any) => plan?.accessPass || plan).filter(Boolean)
+  } else if (input?.data?.data && Array.isArray(input.data.data)) {
+    arr = input.data.data
+  } else if (input?.products?.nodes && Array.isArray(input.products.nodes)) {
+    arr = input.products.nodes
+  } else if (input?.products && Array.isArray(input.products)) {
+    arr = input.products
+  } else if (input?.accessPasses && Array.isArray(input.accessPasses)) {
+    arr = input.accessPasses
+  } else if (input?.plans && Array.isArray(input.plans)) {
+    arr = input.plans.map((plan: any) => plan?.accessPass || plan).filter(Boolean)
+  } else if (Array.isArray(input)) {
+    arr = input
+  }
+
+  if (!Array.isArray(arr) || arr.length === 0) {
+    return []
+  }
   
   return arr.map((p: any) => ({
     id: p?.id || p?.productId || p?.prod_id || p?.access_pass_id || "",
@@ -73,13 +88,6 @@ export async function fetchAllCompanyProducts({
     experience = await scoped.experiences.getExperience({ experienceId })
     companyId = experience?.company?.id || ""
     console.log("[fetchAllCompanyProducts] Got companyId:", companyId)
-    console.log("[fetchAllCompanyProducts] Experience response keys:", Object.keys(experience || {}))
-    if (experience?.products) {
-      console.log("[fetchAllCompanyProducts] experience.products:", JSON.stringify(experience.products, null, 2).substring(0, 500))
-    }
-    if (experience?.data?.products) {
-      console.log("[fetchAllCompanyProducts] experience.data.products:", JSON.stringify(experience.data.products, null, 2).substring(0, 500))
-    }
   } catch (e: any) {
     console.error("[fetchAllCompanyProducts] getExperience failed:", e?.message || e)
   }
@@ -89,9 +97,8 @@ export async function fetchAllCompanyProducts({
     try {
       const scopedCompany = scoped.withCompany(companyId)
       const r1 = await scopedCompany.companies.listAccessPasses({ companyId })
-      console.log("[fetchAllCompanyProducts] listAccessPasses raw response:", JSON.stringify(r1, null, 2).substring(0, 1000))
       const out1 = normalizeProducts(r1)
-      console.log("[fetchAllCompanyProducts] listAccessPasses normalized returned", out1.length, "items")
+      console.log("[fetchAllCompanyProducts] listAccessPasses returned", out1.length, "items")
       if (out1.length > 0) return out1
     } catch (e: any) {
       console.error("[fetchAllCompanyProducts] listAccessPasses failed:", e?.message || e)
@@ -101,33 +108,11 @@ export async function fetchAllCompanyProducts({
     try {
       const scopedCompany = scoped.withCompany(companyId)
       const r2 = await scopedCompany.companies.listPlans({ companyId })
-      console.log("[fetchAllCompanyProducts] listPlans raw response:", JSON.stringify(r2, null, 2).substring(0, 1000))
       const out2 = normalizeProducts(r2)
-      console.log("[fetchAllCompanyProducts] listPlans normalized returned", out2.length, "items")
+      console.log("[fetchAllCompanyProducts] listPlans returned", out2.length, "items")
       if (out2.length > 0) return out2
     } catch (e: any) {
       console.error("[fetchAllCompanyProducts] listPlans failed:", e?.message || e)
-    }
-
-    // Also try without scoping - maybe it needs companyId in params but not scoped
-    try {
-      const r3 = await scoped.companies.listAccessPasses({ companyId })
-      console.log("[fetchAllCompanyProducts] listAccessPasses (unscoped) raw response:", JSON.stringify(r3, null, 2).substring(0, 1000))
-      const out3 = normalizeProducts(r3)
-      console.log("[fetchAllCompanyProducts] listAccessPasses (unscoped) normalized returned", out3.length, "items")
-      if (out3.length > 0) return out3
-    } catch (e: any) {
-      console.error("[fetchAllCompanyProducts] listAccessPasses (unscoped) failed:", e?.message || e)
-    }
-
-    try {
-      const r4 = await scoped.companies.listPlans({ companyId })
-      console.log("[fetchAllCompanyProducts] listPlans (unscoped) raw response:", JSON.stringify(r4, null, 2).substring(0, 1000))
-      const out4 = normalizeProducts(r4)
-      console.log("[fetchAllCompanyProducts] listPlans (unscoped) normalized returned", out4.length, "items")
-      if (out4.length > 0) return out4
-    } catch (e: any) {
-      console.error("[fetchAllCompanyProducts] listPlans (unscoped) failed:", e?.message || e)
     }
   }
 
