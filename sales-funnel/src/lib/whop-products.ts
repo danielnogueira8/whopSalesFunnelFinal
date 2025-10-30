@@ -4,6 +4,11 @@ import { whop } from "~/lib/whop"
 type ProductOut = { id: string; title: string }
 
 function normalizeProducts(input: any): ProductOut[] {
+  if (!input) {
+    console.log("[normalizeProducts] input is null/undefined")
+    return []
+  }
+
   const arr =
     (Array.isArray(input?.data) ? input.data : undefined) ||
     input?.data?.accessPasses ||
@@ -16,10 +21,16 @@ function normalizeProducts(input: any): ProductOut[] {
     (Array.isArray(input) ? input : undefined) ||
     []
 
-  if (!Array.isArray(arr)) return []
+  if (!Array.isArray(arr)) {
+    console.log("[normalizeProducts] Could not extract array, input structure:", JSON.stringify(input, null, 2).substring(0, 300))
+    return []
+  }
+  
+  console.log("[normalizeProducts] Extracted array with", arr.length, "items, sample:", arr[0] ? JSON.stringify(arr[0], null, 2).substring(0, 200) : "none")
+  
   return arr.map((p: any) => ({
-    id: p?.id || p?.productId || p?.prod_id || "",
-    title: p?.title || p?.name || p?.productTitle || "Unnamed Product",
+    id: p?.id || p?.productId || p?.prod_id || p?.access_pass_id || "",
+    title: p?.title || p?.name || p?.productTitle || p?.displayName || "Unnamed Product",
   }))
 }
 
@@ -62,6 +73,13 @@ export async function fetchAllCompanyProducts({
     experience = await scoped.experiences.getExperience({ experienceId })
     companyId = experience?.company?.id || ""
     console.log("[fetchAllCompanyProducts] Got companyId:", companyId)
+    console.log("[fetchAllCompanyProducts] Experience response keys:", Object.keys(experience || {}))
+    if (experience?.products) {
+      console.log("[fetchAllCompanyProducts] experience.products:", JSON.stringify(experience.products, null, 2).substring(0, 500))
+    }
+    if (experience?.data?.products) {
+      console.log("[fetchAllCompanyProducts] experience.data.products:", JSON.stringify(experience.data.products, null, 2).substring(0, 500))
+    }
   } catch (e: any) {
     console.error("[fetchAllCompanyProducts] getExperience failed:", e?.message || e)
   }
@@ -71,8 +89,9 @@ export async function fetchAllCompanyProducts({
     try {
       const scopedCompany = scoped.withCompany(companyId)
       const r1 = await scopedCompany.companies.listAccessPasses({ companyId })
+      console.log("[fetchAllCompanyProducts] listAccessPasses raw response:", JSON.stringify(r1, null, 2).substring(0, 1000))
       const out1 = normalizeProducts(r1)
-      console.log("[fetchAllCompanyProducts] listAccessPasses returned", out1.length, "items")
+      console.log("[fetchAllCompanyProducts] listAccessPasses normalized returned", out1.length, "items")
       if (out1.length > 0) return out1
     } catch (e: any) {
       console.error("[fetchAllCompanyProducts] listAccessPasses failed:", e?.message || e)
@@ -82,11 +101,33 @@ export async function fetchAllCompanyProducts({
     try {
       const scopedCompany = scoped.withCompany(companyId)
       const r2 = await scopedCompany.companies.listPlans({ companyId })
+      console.log("[fetchAllCompanyProducts] listPlans raw response:", JSON.stringify(r2, null, 2).substring(0, 1000))
       const out2 = normalizeProducts(r2)
-      console.log("[fetchAllCompanyProducts] listPlans returned", out2.length, "items")
+      console.log("[fetchAllCompanyProducts] listPlans normalized returned", out2.length, "items")
       if (out2.length > 0) return out2
     } catch (e: any) {
       console.error("[fetchAllCompanyProducts] listPlans failed:", e?.message || e)
+    }
+
+    // Also try without scoping - maybe it needs companyId in params but not scoped
+    try {
+      const r3 = await scoped.companies.listAccessPasses({ companyId })
+      console.log("[fetchAllCompanyProducts] listAccessPasses (unscoped) raw response:", JSON.stringify(r3, null, 2).substring(0, 1000))
+      const out3 = normalizeProducts(r3)
+      console.log("[fetchAllCompanyProducts] listAccessPasses (unscoped) normalized returned", out3.length, "items")
+      if (out3.length > 0) return out3
+    } catch (e: any) {
+      console.error("[fetchAllCompanyProducts] listAccessPasses (unscoped) failed:", e?.message || e)
+    }
+
+    try {
+      const r4 = await scoped.companies.listPlans({ companyId })
+      console.log("[fetchAllCompanyProducts] listPlans (unscoped) raw response:", JSON.stringify(r4, null, 2).substring(0, 1000))
+      const out4 = normalizeProducts(r4)
+      console.log("[fetchAllCompanyProducts] listPlans (unscoped) normalized returned", out4.length, "items")
+      if (out4.length > 0) return out4
+    } catch (e: any) {
+      console.error("[fetchAllCompanyProducts] listPlans (unscoped) failed:", e?.message || e)
     }
   }
 
