@@ -6,10 +6,13 @@ type ProductOut = { id: string; title: string }
 function normalizeProducts(input: any): ProductOut[] {
   const arr =
     (Array.isArray(input?.data) ? input.data : undefined) ||
+    input?.data?.accessPasses ||
+    input?.data?.plans ||
     input?.data?.data ||
     input?.products?.nodes ||
     input?.products ||
     input?.accessPasses ||
+    input?.plans ||
     (Array.isArray(input) ? input : undefined) ||
     []
 
@@ -31,17 +34,24 @@ export async function fetchAllCompanyProducts({
 }): Promise<ProductOut[]> {
   // 1) Verify user from Whop iframe headers; fall back to dev token if provided
   let scoped = whop
+  let verifiedUserId: string | undefined
   try {
     const verified = await verifyUserToken(headers as unknown as VerifyUserTokenOptions)
-    if (verified?.userId) scoped = scoped.withUser(verified.userId)
+    if (verified?.userId) {
+      verifiedUserId = verified.userId
+      scoped = scoped.withUser(verified.userId)
+    }
   } catch {}
 
-  if ((scoped as any) === whop && devToken) {
+  if (!verifiedUserId && devToken) {
     try {
       const h = new Headers()
       h.set("x-whop-user-token", devToken)
       const verifiedDev = await verifyUserToken(h as unknown as VerifyUserTokenOptions)
-      if (verifiedDev?.userId) scoped = scoped.withUser(verifiedDev.userId)
+      if (verifiedDev?.userId) {
+        verifiedUserId = verifiedDev.userId
+        scoped = scoped.withUser(verifiedDev.userId)
+      }
     } catch {}
   }
 
@@ -51,34 +61,38 @@ export async function fetchAllCompanyProducts({
   try {
     experience = await scoped.experiences.getExperience({ experienceId })
     companyId = experience?.company?.id || ""
-  } catch {}
+    console.log("[fetchAllCompanyProducts] Got companyId:", companyId)
+  } catch (e: any) {
+    console.error("[fetchAllCompanyProducts] getExperience failed:", e?.message || e)
+  }
 
   // 3) Try company-level lists in order
   if (companyId) {
     try {
-      const r1 = await scoped.withCompany(companyId).companies.listAccessPasses({ companyId })
+      const scopedCompany = scoped.withCompany(companyId)
+      const r1 = await scopedCompany.companies.listAccessPasses({ companyId })
       const out1 = normalizeProducts(r1)
+      console.log("[fetchAllCompanyProducts] listAccessPasses returned", out1.length, "items")
       if (out1.length > 0) return out1
-    } catch {}
+    } catch (e: any) {
+      console.error("[fetchAllCompanyProducts] listAccessPasses failed:", e?.message || e)
+    }
 
+    // Fallback: list plans (products may be represented as plans)
     try {
-      const productsApi = (scoped as any).withCompany(companyId).products
-      if (productsApi?.listProducts) {
-        const r2 = await productsApi.listProducts({ companyId })
-        const out2 = normalizeProducts(r2)
-        if (out2.length > 0) return out2
-      }
-    } catch {}
-
-    try {
-      const r3 = await scoped.withCompany(companyId).payments.listProductsForCompany({ companyId })
-      const out3 = normalizeProducts(r3)
-      if (out3.length > 0) return out3
-    } catch {}
+      const scopedCompany = scoped.withCompany(companyId)
+      const r2 = await scopedCompany.companies.listPlans({ companyId })
+      const out2 = normalizeProducts(r2)
+      console.log("[fetchAllCompanyProducts] listPlans returned", out2.length, "items")
+      if (out2.length > 0) return out2
+    } catch (e: any) {
+      console.error("[fetchAllCompanyProducts] listPlans failed:", e?.message || e)
+    }
   }
 
   // 4) Last resort: use experience.products if present
   const outExp = normalizeProducts(experience?.products || experience?.data?.products)
+  console.log("[fetchAllCompanyProducts] experience.products fallback returned", outExp.length, "items")
   return outExp
 }
 
