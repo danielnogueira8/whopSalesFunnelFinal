@@ -60,7 +60,7 @@ function NewSequenceContent() {
   }, [categoryParam]);
   
   const selectedCategory = categories.find((cat) => cat.id === category);
-  const needsProduct = Boolean(category && ["cart_abandonment", "product_purchase", "upsell"].includes(category));
+  const needsProduct = Boolean(category && ["welcome", "cart_abandonment", "product_purchase", "upsell"].includes(category));
 
   // Fetch products when product selection is needed
   const { data: productsData } = useQuery({
@@ -141,11 +141,50 @@ function NewSequenceContent() {
   const products = productsData?.products || []
   const selectedProduct = products.find((p) => p.id === productId)
 
-  const handleCreate = () => {
-    // TODO: Create sequence via API
-    // For now, just redirect to builder
-    const newId = crypto.randomUUID();
-    router.push(`/experiences/${experienceId}/sequences/${newId}`);
+  const handleCreate = async () => {
+    if (!name || !category) {
+      return; // TODO: Show validation error
+    }
+
+    try {
+      // Create sequence via API
+      const sequenceRes = await fetch("/api/sequences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, category, experienceId }),
+      });
+
+      if (!sequenceRes.ok) {
+        console.error("Failed to create sequence");
+        return;
+      }
+
+      const { sequence } = await sequenceRes.json();
+
+      // Create trigger with productId if provided
+      const triggerType = category === "welcome" ? "welcome_join" :
+                        category === "cart_abandonment" ? "cart_abandon_1h" :
+                        category === "product_purchase" ? "product_purchase" :
+                        category === "upsell" ? "upsell_purchase" :
+                        category === "win_back" ? "win_back_cancel" :
+                        null;
+
+      if (triggerType) {
+        await fetch(`/api/triggers/${sequence.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: triggerType,
+            productId: productId || undefined,
+          }),
+        });
+      }
+
+      // Redirect to builder
+      router.push(`/experiences/${experienceId}/sequences/${sequence.id}`);
+    } catch (error) {
+      console.error("Error creating sequence:", error);
+    }
   };
 
   return (

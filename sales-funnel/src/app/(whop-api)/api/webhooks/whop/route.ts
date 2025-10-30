@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
   // Welcome
   if (type === "membership_activated" && userId) {
-    await startSequencesByTrigger("welcome_join", userId)
+    await startSequencesByTrigger("welcome_join", userId, productId)
   }
 
   // Win-back
